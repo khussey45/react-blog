@@ -1,9 +1,15 @@
-// Navbar.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';  // Import React first
 import { Link } from 'react-router-dom';
-
+import { UserContext } from '../contexts/UserContext';
 function Navbar() {
+  console.log('Navbar rendered');
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useContext(UserContext);  // Get user state from UserContext
+
+  // Function to close the menu
+  const closeMenu = () => {
+    setIsOpen(false);
+  };
 
   return (
     <nav className="bg-gray-800 p-4">
@@ -28,12 +34,24 @@ function Navbar() {
               </svg>
             </button>
           </div>
-          <div className={`lg:flex ${isOpen ? 'flex flex-col' : 'hidden'} lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4`}>
-            <Link to="/" className="text-white py-2">Home</Link>
-            <Link to="/about" className="text-white py-2">About</Link>
-            <Link to="/projects" className="text-white py-2">Projects</Link>
-            <Link to="/contact" className="text-white py-2">Contact</Link>
-          </div>
+        </div>
+        <div className={`flex flex-col lg:flex-row ${isOpen ? 'block' : 'hidden lg:flex'} lg:justify-end lg:space-x-4`}>
+          <Link to="/" className="text-white py-2" onClick={closeMenu}>Home</Link>
+          <Link to="/about" className="text-white py-2" onClick={closeMenu}>About</Link>
+          <Link to="/projects" className="text-white py-2" onClick={closeMenu}>Projects</Link>
+          <Link to="/contact" className="text-white py-2" onClick={closeMenu}>Contact</Link>
+          {user ? (
+            <button className="bg-blue-600 w-16 text-white py-2" onClick={closeMenu}>
+              My Account
+            </button>
+          ) : (
+            <Link to="/login" className="bg-blue-600 w-12 text-white py-2" onClick={closeMenu}>
+              Login
+            </Link>
+          )}
+          <Link to="/register" className="bg-indigo-600 w-16 text-white py-2" onClick={closeMenu}>
+            Register
+          </Link>
         </div>
       </div>
     </nav>
