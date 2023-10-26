@@ -68,6 +68,27 @@ app.get('/recent-users', async (req, res) => {
   }
 });
 
+// Cross-origin resource sharing
+const corsOptions = {
+  origin: '*', // This allows any domain in development. Be more restrictive in production!
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
+};
+app.use(cors(corsOptions));
+
+// Delete endpoint for Deleting Account
+app.delete('/delete', async (req, res) => {
+  const { username } = req.body;
+  try {
+      // Assuming you're using Mongoose for database operations:
+      await User.findOneAndDelete({ username: username });
+      res.status(200).send('User deleted successfully');
+  } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).send('Server error');
+  }
+});
+
+
 
 
 // Start server

@@ -1,12 +1,16 @@
 // src/pages/Login.js
 import React, { useState, useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
+import { useNavigate } from 'react-router-dom';
+import SuccessModal from '../components/SuccessModal';
 
 
 function Login() {
   const { setUser } = useContext(UserContext); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showModal, setShowModal] = useState(false);  // State for modal visibility
+  const navigate = useNavigate();
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -23,7 +27,14 @@ function Login() {
       if (response.ok) {
         console.log('Login successful:', data);
         setUser(data.user);
-        // Here you would typically navigate the user to another page or set some user state
+        setShowModal(true);  // Show the success modal
+
+         // Redirect to Account page after a delay
+         setTimeout(() => {
+          setShowModal(false);
+          navigate('/account');  // Adjust route if needed
+        }, 2000);
+
       } else {
         console.error('Login error:', data);
         // Optionally show an error message to the user
@@ -81,6 +92,7 @@ function Login() {
             </button>
           </div>
         </form>
+        <SuccessModal isOpen={showModal} onClose={() => setShowModal(false)} message="Successfully Signed In" />
       </div>
     </div>
   );

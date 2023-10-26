@@ -1,10 +1,14 @@
 // src/pages/Register.js
 import React, { useState } from 'react';
+import SuccessModal from '../components/SuccessModal';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showModal, setShowModal] = useState(false); // For modal visibility
+  const navigate = useNavigate();
 
   const handleRegister = async (event) => {
     event.preventDefault();
@@ -21,6 +25,14 @@ function Register() {
         const data = await response.json();
         if (response.ok) {
           console.log('User registered:', data);
+          setShowModal(true);  // Show the success modal
+
+          // Redirect to login after a delay
+          setTimeout(() => {
+            setShowModal(false);
+            navigate('/login');
+          }, 2000);
+
         } else {
           console.error('Registration error:', data);
         }
@@ -91,6 +103,7 @@ function Register() {
             </button>
           </div>
         </form>
+        <SuccessModal isOpen={showModal} onClose={() => setShowModal(false)} message="Successfully Created Account" />
       </div>
     </div>
   );
