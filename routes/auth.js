@@ -7,11 +7,17 @@ const User = require('../models/User');
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
   const newUser = new User({ username, password });
-  try {
+
+   try {
     await newUser.save();
     res.status(201).json(newUser);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    // Check if the error is due to a duplicate key
+    if (err.code === 11000) {
+      res.status(400).json({ error: 'Username already exists, choose another name' });
+    } else {
+      res.status(400).json({ error: err.message });
+    }
   }
 });
 

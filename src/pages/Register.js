@@ -8,6 +8,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showModal, setShowModal] = useState(false); // For modal visibility
+  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
   const handleRegister = async (event) => {
@@ -20,29 +21,38 @@ function Register() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ username, password }),
-});
-
+        });
+  
         const data = await response.json();
+  
         if (response.ok) {
           console.log('User registered:', data);
           setShowModal(true);  // Show the success modal
-
+  
           // Redirect to login after a delay
           setTimeout(() => {
             setShowModal(false);
             navigate('/login');
           }, 2000);
-
         } else {
           console.error('Registration error:', data);
+  
+          // Check if the error message is about duplicate usernames
+          if (data.error === 'Username already exists, choose another name') {
+            setErrorMsg('Username already exists, choose another name');
+          } else {
+            setErrorMsg('Registration error.');
+          }
         }
       } catch (error) {
         console.error('Network error:', error);
+        setErrorMsg('Network error.');
       }
     } else {
       alert('Passwords do not match');
     }
   };
+  
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -95,6 +105,7 @@ function Register() {
           </div>
 
           <div>
+          {errorMsg && <p className="text-red-500">{errorMsg}</p>}
             <button
               type="submit"
               className="bg-black group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

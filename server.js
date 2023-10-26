@@ -33,6 +33,8 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: true } // Ensure to set this to false if you're working locally without HTTPS
 }));
+
+
 // Routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
