@@ -11,6 +11,8 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Register from './pages/Register';  
 import Account from './pages/Account';  // Import the Account component
+import UpdateProfile from './pages/UpdateProfile'; // Import UpdateProfile page
+import DeleteAccount from './pages/DeleteAccount'; // Import DeleteAccount page
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/account" element={<Account />} />  {/* New Route for Account */}
+            <Route path="/update-profile" element={<UpdateProfile />} />
+            <Route path="/delete-account" element={<DeleteAccount />} />
           </Routes>
         </div>
         <Footer />

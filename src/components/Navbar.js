@@ -41,9 +41,9 @@ function Navbar() {
           <Link to="/projects" className="text-white py-2" onClick={closeMenu}>Projects</Link>
           <Link to="/contact" className="text-white py-2" onClick={closeMenu}>Contact</Link>
           {user ? (
-            <button className="bg-blue-600 w-16 text-white py-2" onClick={closeMenu}>
+            <Link to="/account" className="bg-blue-600 w-16 text-white py-2" onClick={closeMenu}>
               My Account
-            </button>
+            </Link>
           ) : (
             <Link to="/login" className="bg-blue-600 w-12 text-white py-2" onClick={closeMenu}>
               Login

@@ -35,5 +35,22 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.delete('/delete', async (req, res) => {
+  const { username } = req.body; // or fetch username from session or JWT token if you're using that
+  
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    await user.remove();
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 module.exports = router;
