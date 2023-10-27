@@ -1,15 +1,15 @@
-// UserProfileComponent.js
-
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
-function UserProfileComponent({ match }) {
+function UserProfileComponent() {
   const [userData, setUserData] = useState(null);
+  const { username } = useParams();
 
   useEffect(() => {
     // Fetch user details using the username from the route params
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`/user/${match.params.username}`);
+        const response = await fetch(`/user/${username}`);
         const data = await response.json();
         setUserData(data);
       } catch (error) {
@@ -18,7 +18,7 @@ function UserProfileComponent({ match }) {
     };
 
     fetchUserData();
-  }, [match.params.username]);
+  }, [username]);
 
   if (!userData) return <div>Loading...</div>;
 

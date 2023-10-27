@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';  
-import { Link } from 'react-router-dom';
+import { Link, useNavigate} from 'react-router-dom';
 import { UserContext } from '../contexts/UserContext';
+
 
 
 function Navbar() {
@@ -8,7 +9,9 @@ function Navbar() {
   const { user, logout } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const history = useHistory(); // <-- Initialize the hook here
+  const navigate = useNavigate();
+
+
 
   // Function to close the menu
   const closeMenu = () => {
@@ -28,7 +31,9 @@ function Navbar() {
         // Assuming you want the first user result and redirect to their page:
         const user = data[0];
         if (user) {
-          history.push(`/user/${user.username}`);
+          navigate(`/user/${user.username}`);
+
+
         }
         
         // Process the data, display it on the page or navigate to a results page, etc.
