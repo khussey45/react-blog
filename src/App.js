@@ -13,6 +13,8 @@ import Register from './pages/Register';
 import Account from './pages/Account';  // Import the Account component
 import UpdateProfile from './pages/UpdateProfile'; // Import UpdateProfile page
 import DeleteAccount from './pages/DeleteAccount'; // Import DeleteAccount page
+import News from './pages/News';
+import UserProfileComponent from './components/UserProfileComponent';
 
 function App() {
   return (
@@ -30,6 +32,10 @@ function App() {
             <Route path="/account" element={<Account />} />  {/* New Route for Account */}
             <Route path="/update-profile" element={<UpdateProfile />} />
             <Route path="/delete-account" element={<DeleteAccount />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/user/:username" element={<UserProfileComponent />} />
+
+
           </Routes>
         </div>
         <Footer />

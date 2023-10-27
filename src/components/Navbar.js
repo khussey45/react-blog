@@ -1,50 +1,43 @@
-import React, { useState, useContext } from 'react';  // Import React first
+import React, { useState, useContext } from 'react';  
 import { Link } from 'react-router-dom';
 import { UserContext } from '../contexts/UserContext';
 
 
 function Navbar() {
-  console.log('Navbar rendered');
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useContext(UserContext);  // Get user state from UserContext
+  const { user, logout } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const history = useHistory(); // <-- Initialize the hook here
 
   // Function to close the menu
   const closeMenu = () => {
     setIsOpen(false);
   };
 
-  return (
-
-    <>
-    {showModal && (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
-            <div className="bg-white p-4 rounded-lg shadow-md w-1/3">
-                <h2 className="text-xl font-bold mb-4">Confirmation</h2>
-                <p className="mb-4">Are you sure you want to logout?</p>
-                <div className="flex justify-end space-x-4">
-                    <button 
-                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
-                        onClick={() => {
-                            logout();
-                            closeMenu();
-                            setShowModal(false);
-                        }}
-                    >
-                        Yes
-                    </button>
-                    <button 
-                        className="bg-gray-300 hover:bg-gray-400 text-black py-2 px-4"
-                        onClick={() => setShowModal(false)}
-                    >
-                        No
-                    </button>
-                </div>
-            </div>
-        </div>
-    )}
+  // Handle search function
+  const handleSearch = async () => {
+    if(!searchQuery) return;
     
+    try {
+        const response = await fetch(`/api/search?query=${searchQuery}`);
+        const data = await response.json();
 
+        console.log(data);
+
+        // Assuming you want the first user result and redirect to their page:
+        const user = data[0];
+        if (user) {
+          history.push(`/user/${user.username}`);
+        }
+        
+        // Process the data, display it on the page or navigate to a results page, etc.
+    } catch (error) {
+        console.error("Error searching:", error);
+    }
+};
+
+  return (
     <nav className="bg-gray-800 p-4">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
@@ -70,40 +63,59 @@ function Navbar() {
         </div>
 
         <div className={`flex flex-col lg:flex-row ${isOpen ? 'block' : 'hidden lg:flex'} lg:justify-end lg:space-x-4`}>
-  <Link to="/" className="text-white py-2" onClick={closeMenu}>Home</Link>
-  <Link to="/about" className="text-white py-2" onClick={closeMenu}>About</Link>
-  <Link to="/projects" className="text-white py-2" onClick={closeMenu}>Projects</Link>
-  <Link to="/contact" className="text-white py-2" onClick={closeMenu}>Contact</Link>
-  {user ? (
-    <>
-      <Link to="/account" className="bg-blue-600 w-16 text-white py-2" onClick={closeMenu}>
-        My Account
-      </Link>
+          <Link to="/" className="text-white py-2" onClick={closeMenu}>Home</Link>
+          <Link to="/news" className="text-white py-2" onClick={closeMenu}>News</Link>
+          <div className="relative text-white py-2">
 
-     <button 
-        onClick={() => setShowModal(true)}
-        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
-     >
-        Logout
-     </button>
-
-    </>
-  ) : (
-    <>
-      <Link to="/login" className="bg-blue-600 w-12 text-white py-2" onClick={closeMenu}>
-        Login
-      </Link>
-      <Link to="/register" className="bg-indigo-600 w-16 text-white py-2" onClick={closeMenu}>
-        Register
-      </Link>
-    </>
-  )}
-</div>
+          <input 
+    type="text" 
+    value={searchQuery} 
+    onChange={(e) => setSearchQuery(e.target.value)} 
+    placeholder="Search..."
+    className="bg-gray-600 rounded-md px-3 py-1 w-40"
+    onKeyPress={(event) => {
+        if (event.key === 'Enter') {
+            handleSearch();
+        }
+    }}
+/>
+<span 
+    className="absolute top-1/2 transform -translate-y-1/2 right-3 cursor-pointer" 
+    onClick={handleSearch}
+>
+    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+</span>
 
 
+          </div>
+
+          {user ? (
+            <>
+              <Link to="/account" className="bg-blue-600 w-16 text-white py-2" onClick={closeMenu}>
+                My Account
+              </Link>
+              <button 
+                onClick={() => setShowModal(true)}
+                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="bg-blue-600 w-12 text-white py-2" onClick={closeMenu}>
+                Login
+              </Link>
+              <Link to="/register" className="bg-indigo-600 w-16 text-white py-2" onClick={closeMenu}>
+                Register
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
-    </>
   );
 }
 

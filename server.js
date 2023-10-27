@@ -5,7 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const User = require('./models/User');
-
+const searchRoutes = require('./routes/search');
 
 // Load environment variables from .env file
 require('dotenv').config();
@@ -26,6 +26,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/auth', authRoutes);
+app.use('/api/search', searchRoutes);
 
 app.use(session({
   secret: 'your-secret-key',
@@ -49,6 +50,7 @@ app.get('/users', async (req, res) => {
       res.status(500).send(err.message);
   }
 });
+
 app.get('/user/:username', async (req, res) => {
   try {
       const user = await User.findOne({ username: req.params.username });
@@ -61,6 +63,7 @@ app.get('/user/:username', async (req, res) => {
       res.status(500).send(err.message);
   }
 });
+
 app.get('/recent-users', async (req, res) => {
   try {
       const recentUsers = await User.find({ createdAt: { $gte: new Date('2023-01-01') } });
@@ -75,6 +78,7 @@ const corsOptions = {
   origin: '*', // This allows any domain in development. Be more restrictive in production!
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
 };
+
 app.use(cors(corsOptions));
 
 // Delete endpoint for Deleting Account
@@ -90,8 +94,18 @@ app.delete('/delete', async (req, res) => {
   }
 });
 
-
-
+app.get('/api/search', async (req, res) => {
+  const query = req.query.query;
+  try {
+    const results = await User.find({
+      username: new RegExp(query, 'i') // 'i' makes it case insensitive
+    });
+    res.json(results);
+  } catch (error) {
+    console.error("Error searching users:", error);
+    res.status(500).send('Server error');
+  }
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;
