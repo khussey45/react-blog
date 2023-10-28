@@ -14,7 +14,9 @@ import Account from './pages/Account';  // Import the Account component
 import UpdateProfile from './pages/UpdateProfile'; // Import UpdateProfile page
 import DeleteAccount from './pages/DeleteAccount'; // Import DeleteAccount page
 import News from './pages/News';
-import UserProfileComponent from './components/UserProfileComponent';
+// import UserProfileComponent from './components/UserProfileComponent';
+import UserProfile from './components/UserProfile';
+import UserDashboard from './components/UserDashboard';
 
 function App() {
   return (
@@ -33,8 +35,9 @@ function App() {
             <Route path="/update-profile" element={<UpdateProfile />} />
             <Route path="/delete-account" element={<DeleteAccount />} />
             <Route path="/news" element={<News />} />
-            <Route path="/user/:username" element={<UserProfileComponent />} />
-
+            {/* <Route path="/user/:username" element={<UserProfileComponent />} /> */}
+            <Route path="/user/:username" element={<UserProfile />} />
+            <Route path="/dashboard/:username" element={<UserDashboard />} />
 
           </Routes>
         </div>

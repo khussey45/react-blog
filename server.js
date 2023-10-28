@@ -23,7 +23,13 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 const app = express();
 
 // Middleware
-app.use(cors());
+// app.use(cors());
+// Cross-origin resource sharing
+const corsOptions = {
+  origin: '*', // This allows any domain in development. Be more restrictive in production!
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use('/auth', authRoutes);
 app.use('/api/search', searchRoutes);
@@ -52,6 +58,16 @@ app.get('/users', async (req, res) => {
 });
 
 app.get('/user/:username', async (req, res) => {
+  // Check if the user is authenticated
+  if (!req.session || !req.session.user) {
+      return res.status(401).send("Not authenticated");
+  }
+
+  // Check if the authenticated user matches the user data being requested
+  if (req.session.user.username !== req.params.username) {
+      return res.status(403).send("Not authorized");
+  }
+
   try {
       const user = await User.findOne({ username: req.params.username });
       if (user) {
@@ -60,9 +76,11 @@ app.get('/user/:username', async (req, res) => {
           res.status(404).send('User not found');
       }
   } catch (err) {
-      res.status(500).send(err.message);
+      res.status(500).json({ error: "Server error" });
   }
 });
+
+
 
 app.get('/recent-users', async (req, res) => {
   try {
@@ -73,19 +91,23 @@ app.get('/recent-users', async (req, res) => {
   }
 });
 
-// Cross-origin resource sharing
-const corsOptions = {
-  origin: '*', // This allows any domain in development. Be more restrictive in production!
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
-};
 
-app.use(cors(corsOptions));
 
 // Delete endpoint for Deleting Account
 app.delete('/delete', async (req, res) => {
+  // Check if the user is authenticated
+  if (!req.session || !req.session.user) {
+      return res.status(401).send("Not authenticated");
+  }
+
   const { username } = req.body;
+
+  // Check if the authenticated user matches the user being deleted
+  if (req.session.user.username !== username) {
+      return res.status(403).send("Not authorized to delete this user");
+  }
+
   try {
-      // Assuming you're using Mongoose for database operations:
       await User.findOneAndDelete({ username: username });
       res.status(200).send('User deleted successfully');
   } catch (error) {
@@ -93,6 +115,7 @@ app.delete('/delete', async (req, res) => {
       res.status(500).send('Server error');
   }
 });
+
 
 app.get('/api/search', async (req, res) => {
   const query = req.query.query;
@@ -104,6 +127,19 @@ app.get('/api/search', async (req, res) => {
   } catch (error) {
     console.error("Error searching users:", error);
     res.status(500).send('Server error');
+  }
+});
+app.post('/logout', (req, res) => {
+  if (req.session) {
+      req.session.destroy(err => {
+          if (err) {
+              return res.status(500).send("Couldn't log out due to server error");
+          }
+          res.clearCookie('sid'); // Replace 'sid' with the name of your cookie if it's different
+          return res.status(200).send("Logged out");
+      });
+  } else {
+      return res.status(200).send("Logged out");
   }
 });
 

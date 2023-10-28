@@ -4,18 +4,24 @@ import { UserContext } from '../contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 import SuccessModal from '../components/SuccessModal';
 
-
 function Login() {
   const { setUser } = useContext(UserContext); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showModal, setShowModal] = useState(false);  // State for modal visibility
+  const [errorMessage, setErrorMessage] = useState('');  // State for error messages
+  const [loading, setLoading] = useState(false);  // State for loading status
   const navigate = useNavigate();
 
   const handleLogin = async (event) => {
     event.preventDefault();
+
+    // Clear any previous error messages and set loading status
+    setErrorMessage('');
+    setLoading(true);
+
     try {
-      const response = await fetch('/auth/login', {  // Adjust the URL to match your server setup
+      const response = await fetch('/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,24 +30,27 @@ function Login() {
       });
       
       const data = await response.json();
+      setLoading(false);  // Clear loading status
+
       if (response.ok) {
         console.log('Login successful:', data);
         setUser(data.user);
         setShowModal(true);  // Show the success modal
 
-         // Redirect to Account page after a delay
-         setTimeout(() => {
+        // Redirect to Account page after a delay
+        setTimeout(() => {
           setShowModal(false);
-          navigate('/account');  // Adjust route if needed
-        }, 2000);
+          navigate(`/dashboard/${data.user.username}`);
 
+        }, 2000);
       } else {
         console.error('Login error:', data);
-        // Optionally show an error message to the user
+        setErrorMessage(data.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
+      setLoading(false);  // Clear loading status
       console.error('Network error:', error);
-      // Optionally show a network error message to the user
+      setErrorMessage('Network error. Please try again later.');
     }
   };
   
@@ -83,12 +92,15 @@ function Login() {
             </div>
           </div>
 
+          {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
+
           <div>
             <button
               type="submit"
-              className=" bg-black group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={loading}
+              className="bg-black group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </div>
         </form>
