@@ -1,11 +1,26 @@
 const express = require('express');
-const session = require('express-session');
+// const session = require('express-session');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const User = require('./models/User');
 const searchRoutes = require('./routes/search');
+const jwt = require('jsonwebtoken');
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401); // if there's no token, reject the request
+
+  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+      if (err) return res.sendStatus(403); // if the token is invalid or expired
+      req.user = user;
+      next();
+  });
+}
+
 
 // Load environment variables from .env file
 require('dotenv').config();
@@ -35,10 +50,10 @@ app.use('/auth', authRoutes);
 app.use('/api/search', searchRoutes);
 
 app.use(session({
-  secret: 'your-secret-key',
+  secret: process.env.JWT_SECRET_KEY,
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: true } // Ensure to set this to false if you're working locally without HTTPS
+  cookie: { secure: true }
 }));
 
 
@@ -57,7 +72,7 @@ app.get('/users', async (req, res) => {
   }
 });
 
-app.get('/user/:username', async (req, res) => {
+app.get('/user/:username', authenticateToken, async (req, res) => {
   // Check if the user is authenticated
   if (!req.session || !req.session.user) {
       return res.status(401).send("Not authenticated");
@@ -117,18 +132,19 @@ app.delete('/delete', async (req, res) => {
 });
 
 
-app.get('/api/search', async (req, res) => {
-  const query = req.query.query;
-  try {
-    const results = await User.find({
-      username: new RegExp(query, 'i') // 'i' makes it case insensitive
-    });
-    res.json(results);
-  } catch (error) {
-    console.error("Error searching users:", error);
-    res.status(500).send('Server error');
-  }
-});
+// app.get('/api/search', async (req, res) => {
+//   const query = req.query.query;
+//   try {
+//     const results = await User.find({
+//       username: new RegExp(query, 'i') // 'i' makes it case insensitive
+//     });
+//     res.json(results);
+//   } catch (error) {
+//     console.error("Error searching users:", error);
+//     res.status(500).send('Server error');
+//   }
+// });
+
 app.post('/logout', (req, res) => {
   if (req.session) {
       req.session.destroy(err => {

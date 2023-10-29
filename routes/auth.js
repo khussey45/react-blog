@@ -3,6 +3,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -41,11 +42,16 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
     
-    res.json({ message: 'Login successful', user });  // Respond with success message and user data
+    // Generate JWT Token
+    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+
+    // Respond with token and user data
+    res.json({ token, message: 'Login successful', user });
   } catch (err) {
-    res.status(500).json({ error: err.message });  // Respond with server error
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 router.delete('/delete', async (req, res) => {
   const { username } = req.body; // or fetch username from session or JWT token if you're using that

@@ -6,62 +6,51 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 function UserDashboard() {
   const [userData, setUserData] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);  // for the delete modal
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user } = useContext(UserContext);
+  const { user, token } = useContext(UserContext);
 
   const fetchUserData = async () => {
-    try {
-      const response = await fetch(`/user/${username}`);
+      try {
+          const response = await fetch(`/user/${username}`, {
+              headers: {
+                  'Authorization': `Bearer ${token}`
+              }
+          });
 
-      // Check if the response is JSON
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const data = await response.json();
-
-        // Check for any server-side errors in the JSON response
-        if (!response.ok) {
-          throw new Error(data.error || "Server error");
-        }
-
-        setUserData(data);
-      } else {
-        // Handle plain text or other content types
-        const text = await response.text();
-        throw new Error(text);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-    } 
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+              const data = await response.json();
+              if (!response.ok) {
+                  throw new Error(data.error || "Server error");
+              }
+              setUserData(data);
+          } else {
+              const text = await response.text();
+              throw new Error(text);
+          }
+      } catch (error) {
+          console.error('Failed to fetch user data:', error);
+          setError('Failed to fetch user data. Please try again later.');
+      } 
   };
 
   useEffect(() => {
-     // Log the value of username
-  console.log("Username from useParams:", username);
-
-    fetchUserData();
+      fetchUserData();
   }, [username]);
 
-    // Check if user is logged in
+  useEffect(() => {
     if (!user) {
       navigate('/login'); 
-      return null;
+    } else if (userData && userData.username !== user.username) {
+      navigate('/not-authorized');
     }
-  
-    // Redirect if the username from params is not equal to logged-in user's username
-    if (userData && user && userData.username !== user.username) {
-      navigate('/not-authorized'); 
-      return null;
-    }
+  }, [user, userData, navigate]);
 
+  if (error) return <div>{error}</div>;
   if (!userData) return <div>Loading...</div>;
-
-  // Redirect if the username from params is not equal to logged-in user's username
-  if (userData && user && userData.username !== user.username) {
-    navigate('/not-authorized');
-    return null;
-  }
 
   return (
     <div className="p-8">
