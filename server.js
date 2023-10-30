@@ -1,6 +1,6 @@
 const express = require('express');
 // const session = require('express-session');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
@@ -25,9 +25,16 @@ function authenticateToken(req, res, next) {
 // Load environment variables from .env file
 require('dotenv').config();
 
+// check for environment variables
+if (!process.env.JWT_SECRET_KEY || !process.env.MONGODB_URI) {
+  console.error("Essential environment variables are missing!");
+  process.exit(1); // Exit the process with an error code
+}
+
+
 // Access the MongoDB connection string
 const mongoURI = process.env.MONGODB_URI;
-console.log(process.env.MONGODB_URI);
+// console.log(process.env.MONGODB_URI);
 
 
 // Connect to MongoDB
@@ -38,23 +45,38 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 const app = express();
 
 // Middleware
-// app.use(cors());
-// Cross-origin resource sharing
+const allowedOrigins = ['https://localhost:3000', 'https://localhost:5000'];
+
 const corsOptions = {
-  origin: '*', // This allows any domain in development. Be more restrictive in production!
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      var msg = 'The CORS policy...';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  optionsSuccessStatus: 204
 };
+
+// app.use(cors(corsOptions));
+
+
+app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
+app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/api/search', searchRoutes);
 
-app.use(session({
-  secret: process.env.JWT_SECRET_KEY,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
-}));
+// This is for express-session even tho it has JWT??
+// app.use(session({
+//   secret: process.env.JWT_SECRET_KEY,
+//   resave: false,
+//   saveUninitialized: true,
+//   cookie: { secure: true }
+// }));
 
 
 // Routes
@@ -74,14 +96,15 @@ app.get('/users', async (req, res) => {
 
 app.get('/user/:username', authenticateToken, async (req, res) => {
   // Check if the user is authenticated
-  if (!req.session || !req.session.user) {
-      return res.status(401).send("Not authenticated");
-  }
+  if (!req.user) {
+    return res.status(401).send("Not authenticated");
+}
 
   // Check if the authenticated user matches the user data being requested
-  if (req.session.user.username !== req.params.username) {
-      return res.status(403).send("Not authorized");
-  }
+  if (req.user.username !== req.params.username) {
+    return res.status(403).send("Not authorized");
+}
+
 
   try {
       const user = await User.findOne({ username: req.params.username });
@@ -109,18 +132,17 @@ app.get('/recent-users', async (req, res) => {
 
 
 // Delete endpoint for Deleting Account
-app.delete('/delete', async (req, res) => {
+app.delete('/delete/:username', authenticateToken, async (req, res) => {
   // Check if the user is authenticated
-  if (!req.session || !req.session.user) {
+  if (!req.user) {
       return res.status(401).send("Not authenticated");
   }
-
-  const { username } = req.body;
+  const username = req.params.username;
 
   // Check if the authenticated user matches the user being deleted
-  if (req.session.user.username !== username) {
-      return res.status(403).send("Not authorized to delete this user");
-  }
+  if (req.user.username !== username) {
+    return res.status(403).send("Not authorized to delete this user");
+}
 
   try {
       await User.findOneAndDelete({ username: username });
@@ -146,18 +168,17 @@ app.delete('/delete', async (req, res) => {
 // });
 
 app.post('/logout', (req, res) => {
-  if (req.session) {
-      req.session.destroy(err => {
-          if (err) {
-              return res.status(500).send("Couldn't log out due to server error");
-          }
-          res.clearCookie('sid'); // Replace 'sid' with the name of your cookie if it's different
-          return res.status(200).send("Logged out");
-      });
-  } else {
-      return res.status(200).send("Logged out");
-  }
+  // With JWTs, there's not much you can do server-side to log out. Instead, you'd clear the token client-side.
+  // You can send a response indicating the client should clear the token.
+  return res.status(200).send("Logged out");
 });
+
+// Error-handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 
 // Start server
 const PORT = process.env.PORT || 5000;
