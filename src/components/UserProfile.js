@@ -7,22 +7,31 @@ function UserProfile() {
 
   useEffect(() => {
     // Fetch user details using the username from the route params
-
+  
     const fetchUserData = async () => {
-    try {
-        const response = await fetch(`/user/${username}`);
+      try {
+        const token = localStorage.getItem('jwt_token');  // Retrieve the JWT token from localStorage
+  
+        const response = await fetch(`/user/${username}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`  // Add the JWT token to the request headers
+          }
+        });
+  
         console.log('API Response:', response);  // log the raw response
         const data = await response.json();
         console.log('API Data:', data);  // log the parsed JSON data
         setUserData(data);
-    } catch (error) {
+      } catch (error) {
         console.error('Failed to fetch user data:', error);
-    }
-};
-
-
+      }
+    };
+  
     fetchUserData();
   }, [username]);
+  
+
+
 
   if (!userData) return <div>Loading...</div>;
 

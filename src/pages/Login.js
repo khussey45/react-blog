@@ -13,35 +13,45 @@ function Login() {
   const [loading, setLoading] = useState(false);  // State for loading status
   const navigate = useNavigate();
 
+
+
+  //handle login 
   const handleLogin = async (event) => {
     event.preventDefault();
-
+  
     // Clear any previous error messages and set loading status
     setErrorMessage('');
     setLoading(true);
-
+  
     try {
       const response = await fetch('/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: username.trim(), password: password.trim() }),
       });
-      
+  
       const data = await response.json();
       setLoading(false);  // Clear loading status
-
+  
       if (response.ok) {
         console.log('Login successful:', data);
         setUser(data.user);
+  
+        // Save JWT token to localStorage
+        if (data.token) {
+          localStorage.setItem('jwt_token', data.token);
+        } else {
+          console.warn('No token found in response. Please check the backend.');
+        }
+  
         setShowModal(true);  // Show the success modal
-
+  
         // Redirect to Account page after a delay
         setTimeout(() => {
           setShowModal(false);
           navigate(`/dashboard/${data.user.username}`);
-
         }, 2000);
       } else {
         console.error('Login error:', data);
@@ -53,6 +63,7 @@ function Login() {
       setErrorMessage('Network error. Please try again later.');
     }
   };
+  
   
 
   return (
