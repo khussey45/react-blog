@@ -7,8 +7,13 @@ const searchRoutes = require('./routes/search');
 const jwt = require('jsonwebtoken');
 
 function authenticateToken(req, res, next) {
+    console.log("Incoming headers:", req.headers);
+
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+
+    console.log("Received Token:", token);
+
 
     if (token == null) return res.status(401).json({ error: "Not authenticated" });
 
@@ -57,7 +62,7 @@ app.use('/auth', authRoutes);
 app.use('/api/search', searchRoutes);
 
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('Hello World!$$$$');
 });
 
 app.get('/users', async (req, res) => {
@@ -70,6 +75,9 @@ app.get('/users', async (req, res) => {
 });
 
 app.get('/user/:username', authenticateToken, async (req, res) => {
+    console.log('req.user.username:', req.user.username);
+console.log('req.params.username:', req.params.username);
+
     if (!req.user) {
         return res.status(401).json({ error: "Not authenticated" });
     }
@@ -78,14 +86,14 @@ app.get('/user/:username', authenticateToken, async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ username: req.params.username });
-        if (user) {
-            res.json(user);
-        } else {
-            res.status(404).json({ error: "User not found" });
+        // Assuming you're using something like mongoose:
+        const userData = await User.findOne({ username: req.params.username });
+        if (!userData) {
+            return res.status(404).json({ error: "User not found" });
         }
-    } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        return res.status(200).json(userData);
+    } catch (error) {
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 

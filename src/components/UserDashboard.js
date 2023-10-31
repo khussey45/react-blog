@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import DeleteAccount from '../pages/DeleteAccount';
-import UpdateProfile from '../pages/UpdateProfile';
+// import UpdateProfile from '../pages/UpdateProfile';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function UserDashboard() {
@@ -14,11 +14,14 @@ function UserDashboard() {
 
   const fetchUserData = async () => {
       try {
-          const response = await fetch(`/user/${username}`, {
-              headers: {
-                  'Authorization': `Bearer ${token}`
-              }
-          });
+        const response = await fetch(`http://localhost:5000/user/${username}`, {
+          method: 'GET', // specify GET method explicitly, though it's default for fetch
+          headers: {
+            'Authorization': `Bearer ${token}`, // use token from UserContext
+            'Content-Type': 'application/json',
+          }
+        });
+        
 
           const contentType = response.headers.get("content-type");
           if (contentType && contentType.indexOf("application/json") !== -1) {

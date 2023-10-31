@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import SuccessModal from '../components/SuccessModal';
 
 function Login() {
-  const { setUser } = useContext(UserContext); 
+  const { setUser, setToken  } = useContext(UserContext); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showModal, setShowModal] = useState(false);  // State for modal visibility
@@ -24,13 +24,14 @@ function Login() {
     setLoading(true);
   
     try {
-      const response = await fetch('/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch('http://localhost:5000/auth/login', {
+      method: 'POST',
+      headers: {
+      'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username: username.trim(), password: password.trim() }),
-      });
+  });
+
   
       const data = await response.json();
       setLoading(false);  // Clear loading status
@@ -41,6 +42,7 @@ function Login() {
   
         // Save JWT token to localStorage
         if (data.token) {
+          setToken(data.token);
           localStorage.setItem('jwt_token', data.token);
         } else {
           console.warn('No token found in response. Please check the backend.');
